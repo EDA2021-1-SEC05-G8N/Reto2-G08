@@ -34,12 +34,90 @@ se hace la solicitud al controlador para ejecutar la
 operación solicitada
 """
 
+def printCanalData(canal):
+    """
+    Imprime la información del canal seleccionado
+    """
+    if canal:
+        print('canal encontrado: ' + canal['name'])
+        print('Promedio: ' + str(canal['average_rating']))
+        print('Total de videos: ' + str(lt.size(canal['videos'])))
+        for video in lt.iterator(canal['videos']):
+            print('Titulo: ' + video['title'] )
+        print("\n")
+    else:
+        print('No se encontro el canal.\n')
+
+
+def printVideosbyTag(videos):
+    """
+    Imprime los libros que han sido clasificados con
+    una etiqueta
+    """
+    if (videos):
+        print('Se encontraron: ' + str(lt.size(videos)) + ' videos.')
+        for video in lt.iterator(videos):
+            print(video['title'])
+        print("\n")
+    else:
+        print("No se econtraron videos.\n")
+
+
+def printVideosbyYear(videos):
+    """
+    Imprime los libros que han sido publicados en un
+    año
+    """
+    if(videos):
+        print('Se encontraron: ' + str(lt.size(videos)) + ' videos')
+        for video in lt.iterator(videos):
+            print(video['title'])
+        print("\n")
+    else:
+        print("No se encontraron videos.\n")
+
+
+def printBestVideos(videos):
+    """
+    Imprime la información de los mejores libros
+    por promedio
+    """
+    size = lt.size(videos)
+    if size:
+        print(' Estos son los mejores videos: ')
+        for video in lt.iterator(videos):
+            print('Titulo: ' + video['title'] + ' Rating: ' + video['trending_date'])
+        print("\n")
+    else:
+        print('No se encontraron videos.\n')
+
+
+# Menu de opciones
+
 def printMenu():
     print("Bienvenido")
-    print("1- Cargar información en el catálogo")
-    print("2- ")
+    print("1- Inicializar Catálogo")
+    print("2- Cargar información en el catálogo")
+    print("3- Consultar los videos de un año")
+    print("4- Consultar los videos de un canal")
+    print("5- Consultar los videos por etiqueta")
+    print("0- Salir")
 
-catalog = None
+
+# Funciones de inicializacion
+
+def initCatalog():
+    """
+    Inicializa el catalogo de libros
+    """
+    return controller.initCatalog()
+
+
+def loadData(catalog):
+    """
+    Carga los libros en el catalogo
+    """
+    controller.loadData(catalog)
 
 """
 Menu principal
@@ -48,11 +126,30 @@ while True:
     printMenu()
     inputs = input('Seleccione una opción para continuar\n')
     if int(inputs[0]) == 1:
-        print("Cargando información de los archivos ....")
+        print("Inicializando Catálogo ....")
+        cont = controller.initCatalog()
 
     elif int(inputs[0]) == 2:
-        pass
+        print("Cargando información de los archivos ....")
+        controller.loadData(cont)
+        print('videos cargados: ' + str(controller.videosSize(cont)))
+        print('canales cargados: ' + str(controller.canalesSize(cont)))
+        print('etiquetas cargadas: ' + str(controller.tagsSize(cont)))
+    
+    elif int(inputs[0]) == 3:
+        number = input("Buscando videos del año?: ")
+        videos = controller.getVideosYear(cont, int(number))
+        printVideosbyYear(videos)
 
+    elif int(inputs[0]) == 4:
+        canalname = input("Nombre del canal a buscar: ")
+        canalinfo = controller.getVideosByCanal(cont, canalname)
+        printCanalData(canalinfo)
+
+    elif int(inputs[0]) == 5:
+        label = input("Etiqueta a buscar: ")
+        videos = controller.getVideosByTag(cont, label)
+        printVideosbyTag(videos)
     else:
         sys.exit(0)
 sys.exit(0)
