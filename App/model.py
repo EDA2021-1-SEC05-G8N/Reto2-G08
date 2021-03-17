@@ -127,7 +127,7 @@ def addVideo(catalog, video):
     """
     lt.addLast(catalog['videos'], video)
     mp.put(catalog['videoIds'], video['video_id'], video)
-    canales = video['canales'].split(",")  # Se obtienen los autores
+    canales = video['channel_title'].split(",")  # Se obtienen los autores
     for canal in canales:
         addVideoCanal(catalog, canal.strip(), video)
     addVideoYear(catalog, video)
@@ -143,8 +143,8 @@ def addVideoYear(catalog, video):
     try:
         years = catalog['years']
         if (video['publish_time'] != ''):
-            pubyear = video['publish_time']
-            pubyear = int(float(pubyear[0:4]))
+            pubyear = video['publish_time'][0:4]
+            pubyear = int(float(pubyear))
         else:
             pubyear = 2020
         existyear = mp.contains(years, pubyear)
@@ -191,30 +191,24 @@ def addVideoCanal(catalog, canalname, video):
         canal['average_rating'] = canal['views'] / totcanales
 
 
-def addTag(catalog, tag):
+def addTag(catalog, cat):
     """
     Adiciona un tag a la tabla de tags dentro del catalogo y se
     actualiza el indice de identificadores del tag.
     """
-    newtag = newVideoTag(tag['name'], tag['id'])
-    mp.put(catalog['tags'], tag['name'], newtag)
-    mp.put(catalog['tagIds'], tag['id'], newtag)
+    newtag = newVideoTag(cat['name'], cat['id'])
+    mp.put(catalog['tags'], cat['name'], newtag)
+    print(catalog['tags'])
+    mp.put(catalog['tagIds'], cat['id'], newtag)
 
 
 def addVideoTag(catalog, tag):
-    """
-    Agrega una relación entre un video y un tag.
-    Para ello se adiciona el libro a la lista de libros
-    del tag.
-    """
-    videoid = tag['video_id']
     tagid = tag['id']
+    videoid = tag['goodreads_book_id']
     entry = mp.get(catalog['tagIds'], tagid)
-
     if entry:
         tagvideo = mp.get(catalog['tags'], me.getValue(entry)['name'])
         tagvideo['value']['total_videos'] += 1
-        tagvideo['value']['count'] += int(tag['count'])
         video = mp.get(catalog['videoIds'], videoid)
         if video:
             lt.addLast(tagvideo['value']['videos'], video['value'])
@@ -245,13 +239,12 @@ def newVideoTag(name, id):
     marcados con dicho tag.  Se guarga el total de libros y una lista con
     dichos libros.
     """
-    tag = {'name': '',
-           'id': '',
+    tag = {'tag_name': '',
+           'tag_id': '',
            'total_videos': 0,
-           'books': None,
-           'count': 0.0}
-    tag['name'] = name
-    tag['id'] = id
+           'videos': None}
+    tag['tag_name'] = name
+    tag['tag_id'] = id
     tag['videos'] = lt.newList()
     return tag
 
@@ -267,15 +260,30 @@ def getVideosByCanal(catalog, canalname):
     return None
 
 
-def getVideosByTag(catalog, tagname):
-    """
-    Retornar la lista de libros asociados a un tag
-    """
-    tag = mp.get(catalog['tags'], tagname)
-    videos = None
-    if tag:
-        videos = me.getValue(tag)['videos']
-    return videos
+def getVideosByTag(catalog, cat, number):
+    ""
+    videos = catalog["videos"]
+    cmpcategoria = catalog["tags"]
+    print(cmpcategoria)
+    idname=getVideosByCat(cmpcategoria, cat)
+    videoscat = lt.newList()
+    i=1
+    while i <= lt.size(videos):
+        idvideo = lt.getElement(videos, i).get("category_id")
+        if idname == idvideo:
+            video = lt.getElement(videos, i)
+            lt.addLast(videoscat, video)
+        i=i+1
+
+    #   obtenemos los id dentro de una lista
+    new_list=[]
+    j=1
+    while j <= lt.size(videoscat):
+        video_id=lt.getElement(videoscat, j).get("video_id")
+        new_list.append(video_id)
+        j=j+1
+
+    return new_list
 
 
 def getVideosByYear(catalog, year):
@@ -306,7 +314,7 @@ def tagsSize(catalog):
     """
     Numero de tags en el catalogo
     """
-    return mp.size(catalog['tags'])
+    return mp.size(catalog['tagIds'])
 
 
 
@@ -330,9 +338,9 @@ def compareMapVideoIds(id, entry):
     y entry una pareja llave-valor
     """
     identry = me.getKey(entry)
-    if (int(id) == int(identry)):
+    if ((id) == (identry)):
         return 0
-    elif (int(id) > int(identry)):
+    elif ((id) > (identry)):
         return 1
     else:
         return -1
@@ -390,5 +398,23 @@ def compareYears(year1, year2):
     else:
         return 0
 
+def cmpVideosByLikes(video1, video2):
+    return (float(video1["likes"]) < float(video2["likes"]))
+
 
 # Funciones de ordenamiento
+def sortVideosLikes(catalog):
+    sa.sort(catalog["videos"], cmpVideosByLikes)
+
+
+def getVideosByCat(catalog, name):
+    i=1
+    idname=""
+    while i <= lt.size(catalog):
+        categoria = lt.getElement(catalog, i).get("name") 
+        if str(categoria) == name:
+            idname = lt.getElement(catalog, i).get("id")
+            break
+        else:
+            i=i+1
+    return idname

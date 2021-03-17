@@ -47,7 +47,6 @@ def loadData(catalog):
     """
     loadVideos(catalog)
     loadTags(catalog)
-    loadVideosTags(catalog)
 
 
 def loadVideos(catalog):
@@ -55,7 +54,7 @@ def loadVideos(catalog):
     Carga los libros del archivo.  Por cada libro se indica al
     modelo que debe adicionarlo al catalogo.
     """
-    booksfile = cf.data_dir + 'GoodReads/books-small.csv'
+    booksfile = cf.data_dir + 'videos-small.csv'
     input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
     for book in input_file:
         model.addVideo(catalog, book)
@@ -66,20 +65,10 @@ def loadTags(catalog):
     Carga todos los tags del archivo e indica al modelo
     que los adicione al catalogo
     """
-    tagsfile = cf.data_dir + 'GoodReads/tags.csv'
-    input_file = csv.DictReader(open(tagsfile, encoding='utf-8'))
+    tagsfile = cf.data_dir + 'category-id.csv'
+    input_file = csv.DictReader(open(tagsfile, encoding='utf-8'),  delimiter='\t')
     for tag in input_file:
         model.addTag(catalog, tag)
-
-
-def loadVideosTags(catalog):
-    """
-    Carga la información que asocia tags con libros en el catalogo
-    """
-    booktagsfile = cf.data_dir + 'GoodReads/book_tags-small.csv'
-    input_file = csv.DictReader(open(booktagsfile, encoding='utf-8'),  delimiter='\t')
-    for booktag in input_file:
-        model.addVideoTag(catalog, booktag)
 
 
 
@@ -92,7 +81,8 @@ def getBestVideos(catalog, number):
     """
     Retorna los mejores libros según su promedio
     """
-    bestvideos = model.getBestVideos(catalog, number)
+    bestvideos=1
+    #bestvideos = model.getBestVideos(catalog, number)
     return bestvideos
 
 
@@ -126,12 +116,12 @@ def getVideosByCanal(catalog, canalname):
     return canalinfo
 
 
-def getVideosByTag(catalog, tagname):
+def getVideosByTag(catalog, tagname, numero):
     """
     Retorna los libros que han sido marcados con
     una etiqueta
     """
-    videos = model.getVideosByTag(catalog, tagname)
+    videos = model.getVideosByTag(catalog, tagname, numero)
     return videos
 
 

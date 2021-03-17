@@ -100,7 +100,7 @@ def printMenu():
     print("2- Cargar información en el catálogo")
     print("3- Consultar los videos de un año")
     print("4- Consultar los videos de un canal")
-    print("5- Consultar los videos por etiqueta")
+    print("5- Consultar los n videos con mas likes por etiqueta")
     print("0- Salir")
 
 
@@ -147,9 +147,10 @@ while True:
         printCanalData(canalinfo)
 
     elif int(inputs[0]) == 5:
+        numero=input("top :")
         label = input("Etiqueta a buscar: ")
-        videos = controller.getVideosByTag(cont, label)
-        printVideosbyTag(videos)
+        videos = controller.getVideosByTag(cont, label, int(numero))
+        print(videos)
     else:
         sys.exit(0)
 sys.exit(0)
