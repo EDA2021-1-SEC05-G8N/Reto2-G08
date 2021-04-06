@@ -47,7 +47,7 @@ def newCatalog():
     Se crean indices (Maps) por los siguientes criterios:
     Autores
     ID libros
-    Tags
+    cats
     Año de publicacion
 
     Retorna el catalogo inicializado.
@@ -55,8 +55,8 @@ def newCatalog():
     catalog = {'videos': None,
                'videoIds': None,
                'canales': None,
-               'tags': None,
-               'tagIds': None,
+               'cats': None,
+               'catIds': None,
                'years': None}
 
     """
@@ -92,17 +92,17 @@ def newCatalog():
     """
     Este indice crea un map cuya llave es la etiqueta
     """
-    catalog['tags'] = mp.newMap(34500,
+    catalog['cats'] = mp.newMap(34500,
                                 maptype='PROBING',
                                 loadfactor=0.5,
-                                comparefunction=compareTagNames)
+                                comparefunction=compareCatNames)
     """
     Este indice crea un map cuya llave es el Id de la etiqueta
     """
-    catalog['tagIds'] = mp.newMap(34500,
+    catalog['catIds'] = mp.newMap(34500,
                                   maptype='CHAINING',
                                   loadfactor=4.0,
-                                  comparefunction=compareTagIds)
+                                  comparefunction=compareCatIds)
     """
     Este indice crea un map cuya llave es el año de publicacion
     """
@@ -191,27 +191,27 @@ def addVideoCanal(catalog, canalname, video):
         canal['average_rating'] = canal['views'] / totcanales
 
 
-def addTag(catalog, cat):
+def addCat(catalog, cat):
     """
-    Adiciona un tag a la tabla de tags dentro del catalogo y se
-    actualiza el indice de identificadores del tag.
+    Adiciona uns categoria a la tabla de cats dentro del catalogo y se
+    actualiza el indice de identificadores de las categorias.
     """
-    newtag = newVideoTag(cat['name'], cat['id'])
-    mp.put(catalog['tags'], cat['name'], newtag)
-    print(catalog['tags'])
-    mp.put(catalog['tagIds'], cat['id'], newtag)
+    newcat = newVideoCat(cat['name'], cat['id'])
+    mp.put(catalog['cats'], cat['name'], newcat)
+    #print(catalog['cats'])
+    mp.put(catalog['catIds'], cat['id'], newcat)
 
 
-def addVideoTag(catalog, tag):
-    tagid = tag['id']
-    videoid = tag['goodreads_book_id']
-    entry = mp.get(catalog['tagIds'], tagid)
+def addVideoCat(catalog, cat):
+    catid = cat['id']
+    videoid = cat['goodreads_book_id']
+    entry = mp.get(catalog['catIds'], catid)
     if entry:
-        tagvideo = mp.get(catalog['tags'], me.getValue(entry)['name'])
-        tagvideo['value']['total_videos'] += 1
+        catvideo = mp.get(catalog['cats'], me.getValue(entry)['name'])
+        catvideo['value']['total_videos'] += 1
         video = mp.get(catalog['videoIds'], videoid)
         if video:
-            lt.addLast(tagvideo['value']['videos'], video['value'])
+            lt.addLast(catvideo['value']['videos'], video['value'])
 
 
 
@@ -233,20 +233,20 @@ def newAuthor(name):
     return canal
 
 
-def newVideoTag(name, id):
+def newVideoCat(name, id):
     """
-    Esta estructura crea una relación entre un tag y los libros que han sido
-    marcados con dicho tag.  Se guarga el total de libros y una lista con
+    Esta estructura crea una relación entre un cat y los libros que han sido
+    marcados con dicho cat.  Se guarga el total de libros y una lista con
     dichos libros.
     """
-    tag = {'tag_name': '',
-           'tag_id': '',
+    cat = {'cat_name': '',
+           'id': '',
            'total_videos': 0,
            'videos': None}
-    tag['tag_name'] = name
-    tag['tag_id'] = id
-    tag['videos'] = lt.newList()
-    return tag
+    cat['cat_name'] = name
+    cat['id'] = id
+    cat['videos'] = lt.newList()
+    return cat
 
 # Funciones de consulta
 
@@ -260,30 +260,6 @@ def getVideosByCanal(catalog, canalname):
     return None
 
 
-def getVideosByTag(catalog, cat, number):
-    ""
-    videos = catalog["videos"]
-    cmpcategoria = catalog["tags"]
-    print(cmpcategoria)
-    idname=getVideosByCat(cmpcategoria, cat)
-    videoscat = lt.newList()
-    i=1
-    while i <= lt.size(videos):
-        idvideo = lt.getElement(videos, i).get("category_id")
-        if idname == idvideo:
-            video = lt.getElement(videos, i)
-            lt.addLast(videoscat, video)
-        i=i+1
-
-    #   obtenemos los id dentro de una lista
-    new_list=[]
-    j=1
-    while j <= lt.size(videoscat):
-        video_id=lt.getElement(videoscat, j).get("video_id")
-        new_list.append(video_id)
-        j=j+1
-
-    return new_list
 
 
 def getVideosByYear(catalog, year):
@@ -310,11 +286,11 @@ def canalesSize(catalog):
     return mp.size(catalog['canales'])
 
 
-def tagsSize(catalog):
+def catsSize(catalog):
     """
     Numero de tags en el catalogo
     """
-    return mp.size(catalog['tagIds'])
+    return mp.size(catalog['catIds'])
 
 
 
@@ -360,31 +336,31 @@ def compareCanalesByName(keyname, canal):
         return -1
 
 
-def compareTagNames(name, tag):
-    tagentry = me.getKey(tag)
-    if (name == tagentry):
+def compareCatNames(name, cat):
+    catentry = me.getKey(cat)
+    if (name == catentry):
         return 0
-    elif (name > tagentry):
+    elif (name > catentry):
         return 1
     else:
         return -1
 
 
-def compareTagIds(id, tag):
-    tagentry = me.getKey(tag)
-    if (int(id) == int(tagentry)):
+def compareCatIds(id, cat):
+    catentry = me.getKey(cat)
+    if (int(id) == int(catentry)):
         return 0
-    elif (int(id) > int(tagentry)):
+    elif (int(id) > int(catentry)):
         return 1
     else:
         return 0
 
 
-def compareMapYear(id, tag):
-    tagentry = me.getKey(tag)
-    if (id == tagentry):
+def compareMapYear(id, cat):
+    catentry = me.getKey(cat)
+    if (id == catentry):
         return 0
-    elif (id > tagentry):
+    elif (id > catentry):
         return 1
     else:
         return 0

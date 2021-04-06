@@ -49,7 +49,7 @@ def printCanalData(canal):
         print('No se encontro el canal.\n')
 
 
-def printVideosbyTag(videos):
+def printVideosbyCat(videos):
     """
     Imprime los libros que han sido clasificados con
     una etiqueta
@@ -134,7 +134,7 @@ while True:
         controller.loadData(cont)
         print('videos cargados: ' + str(controller.videosSize(cont)))
         print('canales cargados: ' + str(controller.canalesSize(cont)))
-        print('etiquetas cargadas: ' + str(controller.tagsSize(cont)))
+        print('etiquetas cargadas: ' + str(controller.catsSize(cont)))
     
     elif int(inputs[0]) == 3:
         number = input("Buscando videos del año?: ")
@@ -149,7 +149,7 @@ while True:
     elif int(inputs[0]) == 5:
         numero=input("top :")
         label = input("Etiqueta a buscar: ")
-        videos = controller.getVideosByTag(cont, label, int(numero))
+        videos = controller.getVideosByCat(cont, label, int(numero))
         print(videos)
     else:
         sys.exit(0)

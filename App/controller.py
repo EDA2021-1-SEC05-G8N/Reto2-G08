@@ -46,7 +46,7 @@ def loadData(catalog):
     estructura de datos
     """
     loadVideos(catalog)
-    loadTags(catalog)
+    loadCats(catalog)
 
 
 def loadVideos(catalog):
@@ -60,15 +60,15 @@ def loadVideos(catalog):
         model.addVideo(catalog, book)
 
 
-def loadTags(catalog):
+def loadCats(catalog):
     """
     Carga todos los tags del archivo e indica al modelo
     que los adicione al catalogo
     """
-    tagsfile = cf.data_dir + 'category-id.csv'
-    input_file = csv.DictReader(open(tagsfile, encoding='utf-8'),  delimiter='\t')
-    for tag in input_file:
-        model.addTag(catalog, tag)
+    catsfile = cf.data_dir + 'category-id.csv'
+    input_file = csv.DictReader(open(catsfile, encoding='utf-8'),  delimiter='\t')
+    for cat in input_file:
+        model.addCat(catalog, cat)
 
 
 
@@ -101,11 +101,11 @@ def canalesSize(catalog):
     return model.canalesSize(catalog)
 
 
-def tagsSize(catalog):
+def catsSize(catalog):
     """
     Numero de tags cargados al catalogo
     """
-    return model.tagsSize(catalog)
+    return model.catsSize(catalog)
 
 
 def getVideosByCanal(catalog, canalname):
@@ -116,12 +116,12 @@ def getVideosByCanal(catalog, canalname):
     return canalinfo
 
 
-def getVideosByTag(catalog, tagname, numero):
+def getVideosByCat(catalog, catname):
     """
     Retorna los libros que han sido marcados con
     una etiqueta
     """
-    videos = model.getVideosByTag(catalog, tagname, numero)
+    videos = model.getVideosByCat(catalog, catname)
     return videos
 
 
