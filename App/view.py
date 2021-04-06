@@ -131,10 +131,13 @@ while True:
 
     elif int(inputs[0]) == 2:
         print("Cargando información de los archivos ....")
-        controller.loadData(cont)
+        answer = controller.loadData(cont)
         print('videos cargados: ' + str(controller.videosSize(cont)))
         print('canales cargados: ' + str(controller.canalesSize(cont)))
         print('etiquetas cargadas: ' + str(controller.catsSize(cont)))
+        print("Tiempo [ms]: ", f"{answer[0]:.3f}", "  ||  ",
+              "Memoria [kB]: ", f"{answer[1]:.3f}")
+
     
     elif int(inputs[0]) == 3:
         number = input("Buscando videos del año?: ")
@@ -149,7 +152,7 @@ while True:
     elif int(inputs[0]) == 5:
         numero=input("top :")
         label = input("Etiqueta a buscar: ")
-        videos = controller.getVideosByCat(cont, label, int(numero))
+        videos = controller.getVideosByCat(cont, label)
         print(videos)
     else:
         sys.exit(0)
