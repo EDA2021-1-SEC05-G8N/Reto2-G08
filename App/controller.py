@@ -75,8 +75,9 @@ def loadVideos(catalog):
     """
     booksfile = cf.data_dir + 'videos-small.csv'
     input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
-    for book in input_file:
-        model.addVideo(catalog, book)
+    for video in input_file:
+        model.addVideo(catalog, video)
+        
 
 
 def loadCats(catalog):
@@ -88,7 +89,6 @@ def loadCats(catalog):
     input_file = csv.DictReader(open(catsfile, encoding='utf-8'),  delimiter='\t')
     for cat in input_file:
         model.addCat(catalog, cat)
-
 
 
 # Funciones de ordenamiento
@@ -150,6 +150,17 @@ def getVideosYear(catalog, year):
     en un año
     """
     videos = model.getVideosByYear(catalog, year)
+    return videos
+
+
+
+def getVideosByTendCat(cont, cat):
+    videos = model.getVideosByTendCat(cont, cat)
+    return videos
+
+def getVideosByLikesCatPais(cont, cat, pais, num):
+
+    videos = model.getVideosByLikesCatPais(cont, cat, pais, num)
     return videos
 
 
