@@ -29,7 +29,9 @@ import config as cf
 from DISClib.ADT import list as lt
 from DISClib.ADT import map as mp
 from DISClib.DataStructures import mapentry as me
+from DISClib.DataStructures import arraylistiterator as lit
 from DISClib.Algorithms.Sorting import shellsort as sa
+from DISClib.Algorithms.Sorting import mergesort as mer
 assert cf
 
 """
@@ -57,7 +59,8 @@ def newCatalog():
                'canales': None,
                'cats': None,
                'catIds': None,
-               'years': None}
+               'years': None,
+               'countries': None}
 
     """
     Esta lista contiene todo los libros encontrados
@@ -110,6 +113,10 @@ def newCatalog():
                                  maptype='PROBING',
                                  loadfactor=0.5,
                                  comparefunction=compareMapYear)
+    catalog['countries'] = mp.newMap(200,
+                                 maptype='PROBING',
+                                 loadfactor=0.5,
+                                 comparefunction=None)
 
     return catalog
 
@@ -130,7 +137,9 @@ def addVideo(catalog, video):
     canales = video['channel_title'].split(",")  # Se obtienen los autores
     for canal in canales:
         addVideoCanal(catalog, canal.strip(), video)
+    c = video['country']
     addVideoYear(catalog, video)
+    addCountry(catalog,video)
 
 
 def addVideoYear(catalog, video):
@@ -156,6 +165,63 @@ def addVideoYear(catalog, video):
             mp.put(years, pubyear, year)
         lt.addLast(year['videos'], video)
     except Exception:
+        return None
+
+def addCountry(catalog, video):
+    countries = catalog['countries']
+    pais = video['country']
+    existcountry = mp.contains(countries, pais)
+    if existcountry:
+        entry = mp.get(countries, pais)
+        m = me.getValue(entry)
+    else:
+        m = lt.newList('ARRAY_LIST')
+        a = mp.put(countries, pais,m) 
+    lt.addLast(m, video)
+
+def getVideosByLikes(catalog, category, pais):
+    cat_id = encontrarCat(catalog, category)
+    country = encontrarPais(catalog, pais)
+    r = lt.newList('ARRAY_LIST', cmpVideosByViews)
+    for i in range(int(country['size'])):
+        video = country['elements'][i]
+        if video['category_id'] == cat_id['id']:
+            lt.addLast(r, video)
+    res = sortVideos(r)
+    return res
+
+def trendingByCount(catalog, pais):
+    country = encontrarPais(catalog, pais)
+    mapa = mp.newMap(comparefunction = compareMapVideoIds)
+    for i in range(int(country['size'])):
+        video = country['elements'][i]
+        existid = mp.contains(mapa, video['video_id'])
+        if existid:
+            entry = mp.get(mapa, video['video_id'])
+            c = me.getValue(entry) 
+            c+=1
+        else: 
+            entry = mp.put(mapa, video['video_id'], 1)
+    a = "hola"
+
+def encontrarPais(catalog, pais):
+    countries = catalog['countries']
+    existcountry = mp.contains(countries, pais)
+    if existcountry:
+        entry = mp.get(countries, pais)
+        c = me.getValue(entry)
+        return c
+    else: 
+        return None
+
+def encontrarCat(catalog, category):
+    categories = catalog['cats']
+    existcat= mp.contains(categories, category)
+    if existcat:
+        entry = mp.get(categories, category)
+        m = me.getValue(entry)
+        return m
+    else: 
         return None
 
 
@@ -198,7 +264,6 @@ def addCat(catalog, cat):
     """
     newcat = newVideoCat(cat['name'], cat['id'])
     mp.put(catalog['cats'], cat['name'], newcat)
-    #print(catalog['cats'])
     mp.put(catalog['catIds'], cat['id'], newcat)
 
 
@@ -239,10 +304,10 @@ def newVideoCat(name, id):
     marcados con dicho cat.  Se guarga el total de libros y una lista con
     dichos libros.
     """
-    cat = {'cat_name': '',
-           'id': '',
-           'total_videos': 0,
-           'videos': None}
+    
+    cat = {
+
+    }
     cat['cat_name'] = name
     cat['id'] = id
     cat['videos'] = lt.newList()
@@ -259,7 +324,14 @@ def getVideosByCanal(catalog, canalname):
         return me.getValue(canal)
     return None
 
-
+def getVideosByCountry(catalog, pais):
+    exist = mp.contains(catalog['countries'], pais)
+    if exist:
+        entry = mp.get(catalog['countries'], pais)
+        count = me.getValue(entry)
+    else:
+        count = "No existe el pais"
+    return count
 
 
 def getVideosByYear(catalog, year):
@@ -378,6 +450,9 @@ def cmpVideosByLikes(video1, video2):
     return (float(video1["likes"]) < float(video2["likes"]))
 
 
+def cmpVideosByViews(video1, video2):
+    return(int(video1['views']) > int (video2['views']))
+        
 # Funciones de ordenamiento
 def sortVideosLikes(catalog):
     sa.sort(catalog["videos"], cmpVideosByLikes)
@@ -394,3 +469,8 @@ def getVideosByCat(catalog, name):
         else:
             i=i+1
     return idname
+
+def sortVideos(catalog):
+    sub_list = catalog.copy()
+    sorted_list = sa.sort(sub_list, cmpVideosByViews) 
+    return sorted_list

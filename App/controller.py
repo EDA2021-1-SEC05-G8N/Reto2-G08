@@ -73,10 +73,11 @@ def loadVideos(catalog):
     Carga los libros del archivo.  Por cada libro se indica al
     modelo que debe adicionarlo al catalogo.
     """
-    booksfile = cf.data_dir + 'videos-small.csv'
+    booksfile = cf.data_dir + 'videos-large.csv'
     input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
     for book in input_file:
         model.addVideo(catalog, book)
+        
 
 
 def loadCats(catalog):
@@ -133,6 +134,16 @@ def getVideosByCanal(catalog, canalname):
     """
     canalinfo = model.getVideosByCanal(catalog, canalname)
     return canalinfo
+
+def getVideosByLikes(catalog, category, pais):
+    """
+    Retorna los libros de un autor
+    """
+    re1 = model.getVideosByLikes(catalog, category, pais)
+    return re1
+
+def req2(catalog, pais):
+    model.trendingByCount(catalog, pais) 
 
 
 def getVideosByCat(catalog, catname):

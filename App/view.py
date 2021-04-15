@@ -154,6 +154,19 @@ while True:
         label = input("Etiqueta a buscar: ")
         videos = controller.getVideosByCat(cont, label)
         print(videos)
+
+    elif int(inputs[0]) == 6:
+        pais=input("pais : ")
+        categoria = " " + input("categoria a buscar: ")
+        num = int(input("Numero de videos? : "))
+        req1 = controller.getVideosByLikes(cont, categoria, pais)
+        for i in range(1, num+1):
+            print(lt.getElement(req1, i)['views'])
+
+    elif int(inputs[0]) == 7:
+        pais=input("pais del cual desea conocer el video con mas dias de trending: ")
+        controller.req2(cont, pais)
+
     else:
         sys.exit(0)
 sys.exit(0)
