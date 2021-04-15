@@ -23,7 +23,8 @@
 import config as cf
 import sys
 import controller
-from DISClib.ADT import list as lt
+from DISClib.ADT import list as lt 
+from DISClib.ADT import map as mp
 assert cf
 
 
@@ -98,11 +99,10 @@ def printMenu():
     print("Bienvenido")
     print("1- Inicializar Catálogo")
     print("2- Cargar información en el catálogo")
-    print("3- Consultar los videos de un año")
-    print("4- Consultar los videos de un canal")
-    print("5- Consultar los n videos con mas likes por etiqueta")
-    print("6- Encontrar video tendencia por categoría")
-    print("7- Buscar los videos con más Likes")
+    print("3- Encontrar n videos con mas views por pais")
+    print("4- Encontrar video tendencia por categoría")
+    print("5- Encontrar video tendencia por pais")
+    print("6- Buscar los videos con más Likes")
     print("0- Salir")
 
 
@@ -139,48 +139,50 @@ while True:
         print('etiquetas cargadas: ' + str(controller.catsSize(cont)))
         print("Tiempo [ms]: ", f"{answer[0]:.3f}", "  ||  ",
               "Memoria [kB]: ", f"{answer[1]:.3f}")
-
     
     elif int(inputs[0]) == 3:
-        number = input("Buscando videos del año?: ")
-        videos = controller.getVideosYear(cont, int(number))
-        printVideosbyYear(videos)
+        pais=input("pais : ")
+        categoria = " " + input("categoria a buscar: ")
+        num = int(input("Numero de videos? : "))
+        req1 = controller.getVideosByLikes(cont, categoria, pais)
+        ans=req1[0]
+        data=req1[1]
+        print("Tiempo [ms]: ", f"{data[0]:.3f}", "  ||  ",
+        "Memoria [kB]: ", f"{data[1]:.3f}")
+        for i in range(1, num+1):
+            print(lt.getElement(ans, i)['title'])
 
     elif int(inputs[0]) == 4:
-        canalname = input("Nombre del canal a buscar: ")
-        canalinfo = controller.getVideosByCanal(cont, canalname)
-        printCanalData(canalinfo)
-
-    elif int(inputs[0]) == 5:
-        numero=input("top :")
-        label = input("Etiqueta a buscar: ")
-        videos = controller.getVideosByCat(cont, label)
-        print(videos)
-    elif int(inputs[0]) == 6:
         cat = input("categoria a buscar: ")
         cat= controller.getVideosByCat(cont, cat)
         videos = controller.getVideosByTendCat(cont, int(cat))
-        print(videos)
-    elif int(inputs[0]) == 7:
+        ans=videos[0]
+        data=videos[1]
+        print("Tiempo [ms]: ", f"{data[0]:.3f}", "  ||  ",
+        "Memoria [kB]: ", f"{data[1]:.3f}")
+        print(ans)
 
+    elif int(inputs[0]) == 5:
+        pais=input("pais del cual desea conocer el video con mas dias de trending: ")
+        s = controller.req2(cont, pais)
+        ans=s[0]
+        data=s[1]
+        print("Tiempo [ms]: ", f"{data[0]:.3f}", "  ||  ",
+        "Memoria [kB]: ", f"{data[1]:.3f}")
+        print(ans)
+
+    elif int(inputs[0]) == 6:
         cat = input("categoria a buscar: ")
         pais = input("país a buscar: ")
         num = input("nunmero de videos para listar: ")
         cat= controller.getVideosByCat(cont, cat)
         videos = controller.getVideosByLikesCatPais(cont,int(cat), pais, int(num))
-        print(videos)
+        ans=videos[0]
+        data=videos[1]
+        print("Tiempo [ms]: ", f"{data[0]:.3f}", "  ||  ",
+        "Memoria [kB]: ", f"{data[1]:.3f}")
+        print(ans)
     
-    elif int(inputs[0]) == 8:
-        pais=input("pais : ")
-        categoria = " " + input("categoria a buscar: ")
-        num = int(input("Numero de videos? : "))
-        req1 = controller.getVideosByLikes(cont, categoria, pais)
-        for i in range(1, num+1):
-            print(lt.getElement(req1, i)['views'])
-
-    elif int(inputs[0]) == 9:
-        pais=input("pais del cual desea conocer el video con mas dias de trending: ")
-        controller.req2(cont, pais)
     else:
         sys.exit(0)
 sys.exit(0)

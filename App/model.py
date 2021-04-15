@@ -60,7 +60,7 @@ def newCatalog():
                'cats': None,
                'catIds': None,
                'years': None,
-               'countries': None}
+               'countries': None,
                "category": None}
 
     """
@@ -213,7 +213,18 @@ def trendingByCount(catalog, pais):
             c+=1
         else: 
             entry = mp.put(mapa, video['video_id'], 1)
-    a = "hola"
+    cont=0
+    vid=''
+    for a in (country['elements']):
+        b=mp.get(mapa, a['video_id'])
+        e =  me.getValue(b)
+        if e>cont:
+            cont = e 
+            vid = a 
+    return vid
+
+
+
 
 def encontrarPais(catalog, pais):
     countries = catalog['countries']
@@ -235,13 +246,7 @@ def encontrarCat(catalog, category):
     else: 
         return None
 
-
-
 def newYear(pubyear):
-    """
-    Esta funcion crea la estructura de libros asociados
-    a un año.
-    """
     entry = {'year': "", "videos": None}
     entry['year'] = pubyear
     entry['videos'] = lt.newList('SINGLE_LINKED', compareYears)
@@ -383,6 +388,40 @@ def getVideosByTendCat(cont, cate):
         video_max2=lt.getElement(videoscat, k).get("video_id")
         if video_max2 == max_id:
             video_max1=lt.getElement(videoscat, k)
+            break
+        k=k+1
+    ########### presentacion de datos
+    new_elem = {}
+    new_elem['titulo'] = video_max1.get("title")
+    new_elem['titulo_canal'] = video_max1.get("channel_title")
+    new_elem['category_id'] = video_max1.get("category_id")
+    new_elem['dias'] = max_num
+    return new_elem 
+
+def getVideosByTendCountry(catalog, pais):
+    count = mp.get(catalog['countries'], pais)
+    videoscount = getVideosByCountry(catalog, pais)
+    new_list=[]
+    j=1
+    while j <= lt.size(videoscount):
+        video_id=lt.getElement(videoscount, j).get("video_id")
+        new_list.append(video_id)
+        j=j+1
+    print(new_list)
+
+    countlista = [new_list.count(num) for num in new_list]
+
+    # obtenemos el mayor elemeto y su indice
+    max_num = max(countlista)
+    max_index = countlista.index(max_num)
+    max_id=new_list[max_index]
+    # devolvemos el elemento
+    k=1
+    video_max1=lt.getElement(videoscount, k)
+    while k <= lt.size(videoscount):
+        video_max2=lt.getElement(videoscount, k).get("video_id")
+        if video_max2 == max_id:
+            video_max1=lt.getElement(videoscount, k)
             break
         k=k+1
     ########### presentacion de datos

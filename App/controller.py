@@ -73,7 +73,7 @@ def loadVideos(catalog):
     Carga los libros del archivo.  Por cada libro se indica al
     modelo que debe adicionarlo al catalogo.
     """
-    booksfile = cf.data_dir + 'videos-large.csv'
+    booksfile = cf.data_dir + 'videos-small.csv'
     input_file = csv.DictReader(open(booksfile, encoding='utf-8'))
     for book in input_file:
         model.addVideo(catalog, book)
@@ -138,11 +138,39 @@ def getVideosByLikes(catalog, category, pais):
     """
     Retorna los libros de un autor
     """
+    delta_time = -1.0
+    delta_memory = -1.0
+
+    tracemalloc.start()
+    start_time = getTime()
+    start_memory = getMemory()
+
     re1 = model.getVideosByLikes(catalog, category, pais)
-    return re1
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+    tracemalloc.stop()
+    delta_time = stop_time - start_time
+    delta_memory = deltaMemory(start_memory, stop_memory)
+    data= delta_time, delta_memory
+    return re1,data
 
 def req2(catalog, pais):
-    model.trendingByCount(catalog, pais) 
+    delta_time = -1.0
+    delta_memory = -1.0
+
+    tracemalloc.start()
+    start_time = getTime()
+    start_memory = getMemory()
+
+    req2 = model.trendingByCount(catalog, pais) 
+    stop_memory = getMemory()
+    stop_time = getTime()
+    tracemalloc.stop()
+    delta_time = stop_time - start_time
+    delta_memory = deltaMemory(start_memory, stop_memory)
+    data= delta_time, delta_memory
+    return req2,data
 
 
 def getVideosByCat(catalog, catname):
@@ -165,14 +193,39 @@ def getVideosYear(catalog, year):
 
 
 def getVideosByTendCat(cont, cat):
+    delta_time = -1.0
+    delta_memory = -1.0
+
+    tracemalloc.start()
+    start_time = getTime()
+    start_memory = getMemory()
+
     videos = model.getVideosByTendCat(cont, cat)
-    return videos
+
+    stop_memory = getMemory()
+    stop_time = getTime()
+    tracemalloc.stop()
+    delta_time = stop_time - start_time
+    delta_memory = deltaMemory(start_memory, stop_memory)
+    data= delta_time, delta_memory
+    return videos,data
 
 def getVideosByLikesCatPais(cont, cat, pais, num):
+    delta_time = -1.0
+    delta_memory = -1.0
+
+    tracemalloc.start()
+    start_time = getTime()
+    start_memory = getMemory()
 
     videos = model.getVideosByLikesCatPais(cont, cat, pais, num)
-    return videos
-
+    stop_memory = getMemory()
+    stop_time = getTime()
+    tracemalloc.stop()
+    delta_time = stop_time - start_time
+    delta_memory = deltaMemory(start_memory, stop_memory)
+    data= delta_time, delta_memory
+    return videos,data
 
 # ======================================
 # Funciones para medir tiempo y memoria
