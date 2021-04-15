@@ -3,7 +3,7 @@
  * de Los Andes
  *
  *
- * Desarrolado para el curso ISIS1225 - Estructuras de Datos y Algoritmos
+ * Desarrolado para el cur1 ISIS1225 - Estructuras de Datos y Algoritmos
  *
  *
  * This program is free software: you can redistribute it and/or modify
@@ -101,6 +101,8 @@ def printMenu():
     print("3- Consultar los videos de un año")
     print("4- Consultar los videos de un canal")
     print("5- Consultar los n videos con mas likes por etiqueta")
+    print("6- Encontrar video tendencia por categoría")
+    print("7- Buscar los videos con más Likes")
     print("0- Salir")
 
 
@@ -154,8 +156,21 @@ while True:
         label = input("Etiqueta a buscar: ")
         videos = controller.getVideosByCat(cont, label)
         print(videos)
-
     elif int(inputs[0]) == 6:
+        cat = input("categoria a buscar: ")
+        cat= controller.getVideosByCat(cont, cat)
+        videos = controller.getVideosByTendCat(cont, int(cat))
+        print(videos)
+    elif int(inputs[0]) == 7:
+
+        cat = input("categoria a buscar: ")
+        pais = input("país a buscar: ")
+        num = input("nunmero de videos para listar: ")
+        cat= controller.getVideosByCat(cont, cat)
+        videos = controller.getVideosByLikesCatPais(cont,int(cat), pais, int(num))
+        print(videos)
+    
+    elif int(inputs[0]) == 8:
         pais=input("pais : ")
         categoria = " " + input("categoria a buscar: ")
         num = int(input("Numero de videos? : "))
@@ -163,10 +178,9 @@ while True:
         for i in range(1, num+1):
             print(lt.getElement(req1, i)['views'])
 
-    elif int(inputs[0]) == 7:
+    elif int(inputs[0]) == 9:
         pais=input("pais del cual desea conocer el video con mas dias de trending: ")
         controller.req2(cont, pais)
-
     else:
         sys.exit(0)
 sys.exit(0)

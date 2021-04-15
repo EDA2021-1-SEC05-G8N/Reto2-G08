@@ -91,7 +91,6 @@ def loadCats(catalog):
         model.addCat(catalog, cat)
 
 
-
 # Funciones de ordenamiento
 
 # Funciones de consulta sobre el catálogo
@@ -161,6 +160,17 @@ def getVideosYear(catalog, year):
     en un año
     """
     videos = model.getVideosByYear(catalog, year)
+    return videos
+
+
+
+def getVideosByTendCat(cont, cat):
+    videos = model.getVideosByTendCat(cont, cat)
+    return videos
+
+def getVideosByLikesCatPais(cont, cat, pais, num):
+
+    videos = model.getVideosByLikesCatPais(cont, cat, pais, num)
     return videos
 
 

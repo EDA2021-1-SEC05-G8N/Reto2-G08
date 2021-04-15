@@ -61,6 +61,7 @@ def newCatalog():
                'catIds': None,
                'years': None,
                'countries': None}
+               "category": None}
 
     """
     Esta lista contiene todo los libros encontrados
@@ -81,8 +82,8 @@ def newCatalog():
     Este indice crea un map cuya llave es el identificador del libro
     """
     catalog['videoIds'] = mp.newMap(10000,
-                                   maptype='CHAINING',
-                                   loadfactor=4.0,
+                                   maptype='PROBING',
+                                   loadfactor=0.2,
                                    comparefunction=compareMapVideoIds)
 
     """
@@ -96,8 +97,8 @@ def newCatalog():
     Este indice crea un map cuya llave es la etiqueta
     """
     catalog['cats'] = mp.newMap(34500,
-                                maptype='PROBING',
-                                loadfactor=0.5,
+                                maptype='CHAINING',
+                                loadfactor=8.0,
                                 comparefunction=compareCatNames)
     """
     Este indice crea un map cuya llave es el Id de la etiqueta
@@ -113,10 +114,16 @@ def newCatalog():
                                  maptype='PROBING',
                                  loadfactor=0.5,
                                  comparefunction=compareMapYear)
+
     catalog['countries'] = mp.newMap(200,
                                  maptype='PROBING',
                                  loadfactor=0.5,
                                  comparefunction=None)
+                                 
+    catalog['category'] = mp.newMap(40,
+                                 maptype='PROBING',
+                                 loadfactor=0.5,
+                                 comparefunction=compareCatNames)
 
     return catalog
 
@@ -140,6 +147,10 @@ def addVideo(catalog, video):
     c = video['country']
     addVideoYear(catalog, video)
     addCountry(catalog,video)
+    addVideoCategory(catalog, video)
+
+
+
 
 
 def addVideoYear(catalog, video):
@@ -187,7 +198,7 @@ def getVideosByLikes(catalog, category, pais):
         video = country['elements'][i]
         if video['category_id'] == cat_id['id']:
             lt.addLast(r, video)
-    res = sortVideos(r)
+    res = sortVideos1(r)
     return res
 
 def trendingByCount(catalog, pais):
@@ -225,6 +236,7 @@ def encontrarCat(catalog, category):
         return None
 
 
+
 def newYear(pubyear):
     """
     Esta funcion crea la estructura de libros asociados
@@ -233,6 +245,46 @@ def newYear(pubyear):
     entry = {'year': "", "videos": None}
     entry['year'] = pubyear
     entry['videos'] = lt.newList('SINGLE_LINKED', compareYears)
+    return entry
+
+
+
+def addVideoCategory(catalog, video):
+    """
+    Esta funcion adiciona un libro a la lista de libros que
+    fueron publicados en un año especifico.
+    Los años se guardan en un Map, donde la llave es el año
+    y el valor la lista de libros de ese año.
+    """
+    try:
+        categorias = catalog['category']
+        if (video['category_id'] != ''):
+            categoria = video['category_id']
+            categoria = int(float(categoria))
+        else:
+            categoria = 0
+        existcat = mp.contains(categorias, categoria)
+        if existcat:
+            entry = mp.get(categorias, categoria)
+            cat = me.getValue(entry)
+        else:
+            cat = newCategory(categoria)
+            mp.put(categorias, categoria, cat)
+        lt.addLast(cat['videos'], video)
+    except Exception:
+        return None
+
+
+
+
+def newCategory(category):
+    """
+    Esta funcion crea la estructura de libros asociados
+    a un año.
+    """
+    entry = {'category_id': "", "videos": None}
+    entry['category_id'] = category
+    entry['videos'] = lt.newList('SINGLE_LINKED', compareCatIds)
     return entry
 
 
@@ -267,16 +319,6 @@ def addCat(catalog, cat):
     mp.put(catalog['catIds'], cat['id'], newcat)
 
 
-def addVideoCat(catalog, cat):
-    catid = cat['id']
-    videoid = cat['goodreads_book_id']
-    entry = mp.get(catalog['catIds'], catid)
-    if entry:
-        catvideo = mp.get(catalog['cats'], me.getValue(entry)['name'])
-        catvideo['value']['total_videos'] += 1
-        video = mp.get(catalog['videoIds'], videoid)
-        if video:
-            lt.addLast(catvideo['value']['videos'], video['value'])
 
 
 
@@ -315,6 +357,83 @@ def newVideoCat(name, id):
 
 # Funciones de consulta
 
+
+def getVideosByTendCat(cont, cate):
+    cat = mp.get(cont['category'], cate)
+    if cat:
+        videoscat = me.getValue(cat)['videos']
+    new_list=[]
+    j=1
+    while j <= lt.size(videoscat):
+        video_id=lt.getElement(videoscat, j).get("video_id")
+        new_list.append(video_id)
+        j=j+1
+    print(new_list)
+
+    countlista = [new_list.count(num) for num in new_list]
+
+    # obtenemos el mayor elemeto y su indice
+    max_num = max(countlista)
+    max_index = countlista.index(max_num)
+    max_id=new_list[max_index]
+    # devolvemos el elemento
+    k=1
+    video_max1=lt.getElement(videoscat, k)
+    while k <= lt.size(videoscat):
+        video_max2=lt.getElement(videoscat, k).get("video_id")
+        if video_max2 == max_id:
+            video_max1=lt.getElement(videoscat, k)
+            break
+        k=k+1
+    ########### presentacion de datos
+    new_elem = {}
+    new_elem['titulo'] = video_max1.get("title")
+    new_elem['titulo_canal'] = video_max1.get("channel_title")
+    new_elem['category_id'] = video_max1.get("category_id")
+    new_elem['dias'] = max_num
+    return new_elem 
+
+
+
+def getVideosByLikesCatPais(cont, cat, pais, num):
+    sortVideosLikes(cont)
+
+    cat = mp.get(cont['category'], cat)
+    if cat:
+        videoscat = me.getValue(cat)['videos']
+    videoslikes=lt.newList()
+    new_datalist = []
+    i=1
+    while i <= lt.size(videoscat):
+        country = lt.getElement(videoscat, i).get("country")
+        if pais == country:
+            video = lt.getElement(videoscat, i)
+            lt.addLast(videoslikes, video)
+        i=i+1
+    if lt.size(videoslikes)>num+1:
+        for cont in range(1, num+1):
+            new_elem = {}
+            new_elem['titulo'] = lt.getElement(videoslikes, cont).get("title")
+            new_elem['titulo_canal'] = lt.getElement(videoslikes, cont).get("channel_title")
+            new_elem['publish_time'] = lt.getElement(videoslikes, cont).get("publish_time")
+            new_elem['vistas'] = lt.getElement(videoslikes, cont).get("views")
+            new_elem['likes'] = lt.getElement(videoslikes, cont).get("likes")
+            new_elem['dislikes'] = lt.getElement(videoslikes, cont).get("dislikes")
+            new_elem['tags'] = lt.getElement(videoslikes, cont).get("tags")
+            new_datalist.append(new_elem)
+    else:
+        for cont in range(1, lt.size(videoslikes)+1):
+            new_elem = {}
+            new_elem['titulo'] = lt.getElement(videoslikes, cont).get("title")
+            new_elem['titulo_canal'] = lt.getElement(videoslikes, cont).get("channel_title")
+            new_elem['publish_time'] = lt.getElement(videoslikes, cont).get("publish_time")
+            new_elem['vistas'] = lt.getElement(videoslikes, cont).get("views")
+            new_elem['likes'] = lt.getElement(videoslikes, cont).get("likes")
+            new_elem['dislikes'] = lt.getElement(videoslikes, cont).get("dislikes")
+            new_elem['tags'] = lt.getElement(videoslikes, cont).get("tags")
+            new_datalist.append(new_elem)
+    return new_datalist
+
 def getVideosByCanal(catalog, canalname):
     """
     Retorna un autor con sus libros a partir del nombre del autor
@@ -339,6 +458,7 @@ def getVideosByYear(catalog, year):
     Retorna los libros publicados en un año
     """
     year = mp.get(catalog['years'], year)
+    print(year)
     if year:
         return me.getValue(year)['videos']
     return None
@@ -362,7 +482,7 @@ def catsSize(catalog):
     """
     Numero de tags en el catalogo
     """
-    return mp.size(catalog['catIds'])
+    return mp.size(catalog['cats'])
 
 
 
@@ -459,7 +579,6 @@ def sortVideosLikes(catalog):
 
 
 def getVideosByCat(catalog, name):
-    i=1
     idname=""
     while i <= lt.size(catalog):
         categoria = lt.getElement(catalog, i).get("name") 
@@ -471,6 +590,11 @@ def getVideosByCat(catalog, name):
     return idname
 
 def sortVideos(catalog):
+    namecat = mp.get(catalog['cats'], name)
+    idname = int(me.getValue(namecat)["id"])
+    return idname
+
+def sortVideos1(catalog):
     sub_list = catalog.copy()
     sorted_list = sa.sort(sub_list, cmpVideosByViews) 
     return sorted_list
